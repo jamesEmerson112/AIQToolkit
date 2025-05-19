@@ -13,22 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+# General settings for the workflow
 general:
-  use_uvloop: true
+  use_uvloop: true  # Use uvloop for faster async event loop (if available)
 
+# Define available LLMs (Large Language Models) for the workflow
 llms:
   nim_llm:
-    _type: nim
+    _type: nim  # NVIDIA Inference Microservice (NIM) LLM provider (same as config.yml)
     model_name: meta/llama-3.1-70b-instruct
     temperature: 0.0
     max_tokens: 250
   r1_model:
-    _type: nim
+    _type: nim  # ADDITIONAL LLM: DeepSeek R1 model (not present in config.yml)
     model_name: deepseek-ai/deepseek-r1
     temperature: 0.0
-    max_tokens: 2000
+    max_tokens: 2000  # Higher token limit for more complex reasoning
 
+# Define functions/tools that the agent can use
 functions:
   wikipedia_search:
     _type: wiki_search
@@ -42,15 +44,22 @@ functions:
     llm_name: nim_llm
     verbose: true
   react_agent:
-    _type: react_agent
+    _type: react_agent  # Here, the ReAct agent is defined as a function/tool, not as the main workflow
     tool_names: [ wikipedia_search, current_datetime, code_generation ]
     llm_name: nim_llm
     verbose: true
     handle_parsing_errors: true
     max_retries: 2
 
+# Define the main workflow (agent) to run
 workflow:
-  _type: reasoning_agent
-  llm_name: r1_model
-  augmented_fn: react_agent
+  _type: reasoning_agent  # DIFFERENCE: Uses a "reasoning_agent" workflow, not "react_agent"
+  llm_name: r1_model      # Uses the DeepSeek R1 model for reasoning (not nim_llm)
+  augmented_fn: react_agent  # This workflow augments itself with the react_agent function defined above
   verbose: true
+
+# Key differences from config.yml:
+# - Adds a second LLM (r1_model) and uses it for the main workflow.
+# - The main workflow is a "reasoning_agent" that leverages the "react_agent" as an augmentation.
+# - The ReAct agent is not the top-level workflow, but a component/tool used by the reasoning agent.
+# - No eval section is present here (unlike config.yml).

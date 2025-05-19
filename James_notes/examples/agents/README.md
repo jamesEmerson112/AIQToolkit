@@ -10,6 +10,79 @@ This checklist will help you systematically review each agent architecture and i
    - Read the `README.md` for an overview and usage instructions.
    - Review the code and configuration files.
    - Run the example if possible and observe its behavior.
+   - **Progress:**  
+     - Ran: `aiq run --config_file=examples/agents/react/config.yml --input "who was Djikstra?"`
+     - **Output/Observations:**
+       - Multiple warnings about slow plugin/module loading (e.g., aiq_profiler_agent, aiq_agents, aiq_tools, aiq_agno, aiq_langchain, aiq_automated_description_generation, aiq_multi_frameworks).
+       - **Error:** Failed to import plugin 'aiq_alert_triage_agent' due to `ModuleNotFoundError: No module named 'fcntl'` (from ansible_runner).
+         - Note: `fcntl` is a Unix-only module and is not available on Windows. This may cause plugin import failures on Windows systems.
+       - Other warnings about framework discovery and config overwrites.
+       - Code generation tool initialized successfully.
+       - **Workflow Type:** react_agent
+       - **Number of Functions:** 3
+       - **Number of LLMs:** 1
+       - **Agent Reasoning:** Directly uses the ReAct agent to answer the question.
+       - **Final Answer:**  
+         "Djikstra was a Dutch computer scientist, programmer, software engineer, mathematician, and science essayist. He is best known for his work on the shortest path problem and his development of Dijkstra's algorithm, which is a widely used algorithm for finding the shortest path between nodes in a weighted graph."
+       - [Add further observations or results here]
+
+   - **Reasoning Agent (config-reasoning.yml):**
+     - Ran: `aiq run --config_file=examples/agents/react/configs/config-reasoning.yml --input "who was Djikstra?"`
+     - **Output/Observations:**
+       - Similar plugin/module loading warnings as above.
+       - The workflow type is "reasoning_agent", which augments itself with the ReAct agent as a function.
+       - Uses two LLMs: nim_llm and r1_model (DeepSeek R1).
+       - The agent generates a detailed reasoning plan, selects the wikipedia_search tool, and synthesizes a comprehensive answer.
+       - **Workflow Type:** reasoning_agent (augmented with react_agent)
+       - **Number of Functions:** 4
+       - **Number of LLMs:** 2
+       - **Agent Reasoning:** The reasoning_agent plans, then calls the ReAct agent as a function for tool use and answer synthesis.
+       - **Final Answer:**  
+         "Edsger Dijkstra was a Dutch computer scientist, programmer, software engineer, mathematician, and science essayist. He is best known for his work on algorithms, programming languages, and software engineering. Dijkstra was born in 1930 in Rotterdam, Netherlands, and studied mathematics and physics at the University of Leiden. He worked as a programmer at the Mathematical Centre in Amsterdam and later became a professor at the Technische Hogeschool Eindhoven. Dijkstra is known for his contributions to the development of structured programming languages, and he received the 1972 Turing Award for his work. He also made significant contributions to the field of distributed computing and was a pioneer in the development of the THE multiprogramming system. Dijkstra passed away in 2002, but his work continues to influence the field of computer science."
+       - [Add further observations or results here]
+
+   - **Mixture of Agents (mixture_of_agents/config.yml):**
+     - **Config Structure:**
+       - Two LLMs:
+         - agent_orchestrator (Llama-3.1-405b-instruct): Used by the top-level ReAct agent for orchestration and reasoning.
+         - agent_executor (Llama-3.3-70b-instruct): Used by sub-agents for tool execution.
+       - **Sub-agents as tools:**
+         - math_agent: A tool-calling agent with calculator tools (multiply, inequality, divide).
+         - internet_agent: A tool-calling agent with internet tools (wikipedia_search, current_datetime).
+         - code_generation: A code generation tool (Python).
+       - **Workflow:**
+         - The main workflow is a ReAct agent that can delegate tasks to math_agent, internet_agent, or code_generation.
+         - The system prompt explicitly instructs the agent to collaborate with "experts" (the sub-agents/tools) and defines a structured format for agent reasoning and tool use.
+     - **Key Features:**
+       - Demonstrates agent orchestration: the top-level agent can call sub-agents as tools, enabling modular, hierarchical workflows.
+       - Each sub-agent is itself a tool-calling agent, showing deep composability.
+       - Uses different LLMs for orchestration and execution, allowing specialization.
+       - The system prompt enforces a clear, stepwise reasoning and action format.
+     - [Add further observations or results here]
+
+   - **Comparison: ALPHA (config.yml) vs BETA (config-reasoning.yml) vs Mixture of Agents**
+     - **Agent Architecture:**
+       - ALPHA: Direct ReAct agent workflow.
+       - BETA: Reasoning agent workflow, augmented with ReAct agent as a function.
+       - Mixture: ReAct agent orchestrates multiple sub-agents (math_agent, internet_agent), each with their own tools.
+     - **LLMs Used:**
+       - ALPHA: 1 LLM.
+       - BETA: 2 LLMs.
+       - Mixture: 2 LLMs (orchestrator and executor).
+     - **Functions/Tools:**
+       - ALPHA: 3 tools.
+       - BETA: 4 functions (including react_agent as a function).
+       - Mixture: Sub-agents as tools, each with their own toolset; code_generation tool.
+     - **Reasoning Process:**
+       - ALPHA: Direct question answering.
+       - BETA: Planning and delegation to ReAct agent.
+       - Mixture: Top-level agent delegates to sub-agents for specialized tasks (math, internet search, code).
+     - **Output Quality:**
+       - ALPHA: Concise.
+       - BETA: Comprehensive.
+       - Mixture: Highly modular, supports complex, multi-step queries.
+     - **Common Issues:**
+       - All encounter similar plugin warnings and fcntl error.
 
 2. **Tool Calling Agent (`tool_calling/`)**
    - Read the `README.md` for details on tool-calling workflows.
