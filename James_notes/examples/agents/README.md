@@ -60,29 +60,57 @@ This checklist will help you systematically review each agent architecture and i
        - The system prompt enforces a clear, stepwise reasoning and action format.
      - [Add further observations or results here]
 
-   - **Comparison: ALPHA (config.yml) vs BETA (config-reasoning.yml) vs Mixture of Agents**
+   - **ReWOO Agent (rewoo/):**
+     - **Overview:**
+       - Demonstrates a configurable ReWOO (Reasoning WithOut Observation) agent using the AIQ toolkit.
+       - The ReWOO agent plans out a sequence of reasoning steps and tool calls in advance, without waiting for intermediate observations ("plan then execute" paradigm).
+       - Useful for tasks that benefit from global planning or parallel execution of actions.
+     - **Setup:**
+       - Requires NVIDIA API key and (optionally) a Tavily API key for internet search.
+       - Install with `uv sync --all-groups --all-extras` and `uv pip install -e .`.
+     - **How to Run:**
+       - Example command:  
+         `aiq run --config_file=examples/agents/rewoo/configs/config.yml --input "Which city held the Olympic game in the year represented by the bigger number of 1996 and 2004?"`
+     - **Workflow:**
+       - The agent first plans: compares 1996 and 2004, then plans to search for the city that hosted the Olympics in the larger year.
+       - Executes the planned steps: uses calculator_inequality, then internet_search.
+       - Synthesizes the final answer ("Athens") after executing all planned steps.
+     - **Other Features:**
+       - Can be run as a server (`aiq serve ...`) and supports both streaming and non-streaming HTTP requests.
+       - Supports evaluation with `aiq eval ...`.
+     - **Key Concept:**  
+       - "Without observation" means the agent does not wait for the result of each action before planning the next; it plans the whole sequence, then executes.
+     - [Add further observations or results here]
+
+   - **Comparison: ALPHA (config.yml) vs BETA (config-reasoning.yml) vs Mixture of Agents vs ReWOO**
      - **Agent Architecture:**
        - ALPHA: Direct ReAct agent workflow.
        - BETA: Reasoning agent workflow, augmented with ReAct agent as a function.
        - Mixture: ReAct agent orchestrates multiple sub-agents (math_agent, internet_agent), each with their own tools.
+       - ReWOO: ReWOO agent plans all steps before executing, then runs the plan without intermediate observations.
      - **LLMs Used:**
        - ALPHA: 1 LLM.
        - BETA: 2 LLMs.
        - Mixture: 2 LLMs (orchestrator and executor).
+       - ReWOO: 1 LLM.
      - **Functions/Tools:**
        - ALPHA: 3 tools.
        - BETA: 4 functions (including react_agent as a function).
        - Mixture: Sub-agents as tools, each with their own toolset; code_generation tool.
+       - ReWOO: Multiple tools (calculator_inequality, internet_search, etc.).
      - **Reasoning Process:**
        - ALPHA: Direct question answering.
        - BETA: Planning and delegation to ReAct agent.
        - Mixture: Top-level agent delegates to sub-agents for specialized tasks (math, internet search, code).
+       - ReWOO: Plans all reasoning and tool calls in advance, then executes the plan.
      - **Output Quality:**
        - ALPHA: Concise.
        - BETA: Comprehensive.
        - Mixture: Highly modular, supports complex, multi-step queries.
+       - ReWOO: Strategic, global planning; efficient for certain tasks.
      - **Common Issues:**
        - All encounter similar plugin warnings and fcntl error.
+       - ReWOO: Requires correct API keys for all tools.
 
 2. **Tool Calling Agent (`tool_calling/`)**
    - Read the `README.md` for details on tool-calling workflows.
